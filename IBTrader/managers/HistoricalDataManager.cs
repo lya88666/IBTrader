@@ -8,6 +8,8 @@ using System.Windows.Forms.DataVisualization.Charting;
 using IBApi;
 using System.Globalization;
 using System.Windows.Forms;
+using AmengSoft.IBTrader.util;
+using System.Drawing;
 
 namespace AmengSoft.IBTrader
 {
@@ -19,16 +21,14 @@ namespace AmengSoft.IBTrader
         private string yearMonthDayPattern = "yyyyMMdd";
 
         protected int barCounter = -1;
-        protected DataGridView gridView;
-
+        
         private List<HistoricalDataMessage> historicalData;
 
-        public HistoricalDataManager(IBClient ibClient, Chart chart, DataGridView gridView) : base(ibClient, chart) 
+        public HistoricalDataManager(IBClient ibClient, Chart chart) : base(ibClient, chart) 
         {
             Chart historicalChart = (Chart)uiControl;
             historicalChart.Series[0]["PriceUpColor"] = "Green";
             historicalChart.Series[0]["PriceDownColor"] = "Red";
-            this.gridView = gridView;
         }
 
         public void AddRequest(Contract contract, string endDateTime, string durationString, string barSizeSetting, string whatToShow, int useRTH, int dateFormat)
@@ -42,7 +42,6 @@ namespace AmengSoft.IBTrader
             barCounter = -1;
             Chart historicalChart = (Chart)uiControl;
             historicalChart.Series[0].Points.Clear();
-            gridView.Rows.Clear();
             historicalData = new List<HistoricalDataMessage>();
         }
 
@@ -67,6 +66,10 @@ namespace AmengSoft.IBTrader
         {
             DateTime dt;
             Chart historicalChart = (Chart)uiControl;
+
+            double[] close = new double[historicalData.Count];
+            DateTime[] timevalues = new DateTime[historicalData.Count];
+
             for (int i = 0; i < historicalData.Count; i++)
             {
                 if (historicalData[i].Date.Length == fullDatePattern.Length)
@@ -84,21 +87,20 @@ namespace AmengSoft.IBTrader
                 historicalChart.Series[0].Points[i].YValues[2] = historicalData[i].Open;
                 // adding close
                 historicalChart.Series[0].Points[i].YValues[3] = historicalData[i].Close;
-                PopulateGrid(historicalData[i]);
+
+                timevalues[i] = dt;
+                close[i] = historicalData[i].Close;
             }
+            TALibWrapper.AddEMA(10, Color.Red, close, timevalues, historicalChart);
+            TALibWrapper.AddEMA(20, Color.Blue, close, timevalues, historicalChart);
+            TALibWrapper.AddEMA(50, Color.Brown, close, timevalues, historicalChart);
+            TALibWrapper.AddEMA(100, Color.Green, close, timevalues, historicalChart);
+            TALibWrapper.AddEMA(200, Color.DarkOrange, close, timevalues, historicalChart);
         }
 
         protected void PopulateGrid(IBMessage message)
         {
             HistoricalDataMessage bar = (HistoricalDataMessage)message;
-            gridView.Rows.Add(1);
-            gridView[0, gridView.Rows.Count -1].Value = bar.Date;
-            gridView[1, gridView.Rows.Count - 1].Value = bar.Open;
-            gridView[2, gridView.Rows.Count - 1].Value = bar.High;
-            gridView[3, gridView.Rows.Count - 1].Value = bar.Low;
-            gridView[4, gridView.Rows.Count - 1].Value = bar.Close;
-            gridView[5, gridView.Rows.Count - 1].Value = bar.Volume;
-            gridView[6, gridView.Rows.Count - 1].Value = bar.Wap;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace AmengSoft.IBTrader
     {
         public const int RT_BARS_ID_BASE = 40000000;
 
-        public RealTimeBarsManager(IBClient ibClient, Chart rtBarsChart, DataGridView rtBarsGrid) : base(ibClient, rtBarsChart, rtBarsGrid)
+        public RealTimeBarsManager(IBClient ibClient, Chart rtBarsChart) : base(ibClient, rtBarsChart)
         {
         }
 

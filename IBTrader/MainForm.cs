@@ -13,31 +13,36 @@ namespace AmengSoft.IBTrader
 {
     public partial class MainForm : Form
     {
-        private bool _isConnected = false;
-        private IBClient _ibClient;
+        private bool isConnected = false;
+        private IBClient ibClient;
 
-        private MarketDataManager marketDataManager;
-        private DeepBookManager deepBookManager;
         private HistoricalDataManager historicalDataManager;
-        private RealTimeBarsManager realTimeBarManager;
-        private ScannerManager scannerManager;
-        private OrderManager orderManager;
-        private AccountManager accountManager;
-        private ContractManager contractManager;
-        private AdvisorManager advisorManager;
-        private OptionsManager optionsManager;
+
+        //private MarketDataManager marketDataManager;
+        //private DeepBookManager deepBookManager;
+        //private RealTimeBarsManager realTimeBarManager;
+        //private ScannerManager scannerManager;
+        //private OrderManager orderManager;
+        //private AccountManager accountManager;
+        //private ContractManager contractManager;
+        //private AdvisorManager advisorManager;
+        //private OptionsManager optionsManager;
 
         delegate void MessageHandlerDelegate(IBMessage message);
 
         public MainForm()
         {
             InitializeComponent();
+
+            ibClient = new IBClient(this);
+            historicalDataManager = new HistoricalDataManager(ibClient, historicalChart);
+
         }
 
         public bool IsConnected
         {
-            get { return _isConnected; }
-            set { _isConnected = value; }
+            get { return isConnected; }
+            set { isConnected = value; }
         }
 
         //This is the "UI entry point" and as such will handle the UI update by another thread
@@ -63,20 +68,24 @@ namespace AmengSoft.IBTrader
                         ConnectionStatusMessage statusMessage = (ConnectionStatusMessage)message;
                         if (statusMessage.IsConnected)
                         {
-                            //status_CT.Text = "Connected! Your client Id: " + _ibClient.ClientId;
-                            //connectButton.Text = "Disconnect";
+                            status_CT.Text = "Connected! Your client Id: " + ibClient.ClientId;
+
+                            mnuFileConnect.Text = "&Disconnect";
+                            IsConnected = true;
                         }
                         else
                         {
-                            //status_CT.Text = "Disconnected...";
-                            //connectButton.Text = "Connect";
+                            status_CT.Text = "Disconnected...";
+
+                            mnuFileConnect.Text = "&Connect";
+                            IsConnected = true;
                         }
                         break;
                     }
                 case MessageType.Error:
                     {
                         ErrorMessage error = (ErrorMessage)message;
-                        //ShowMessageOnPanel("Request " + error.RequestId + ", Code: " + error.ErrorCode + " - " + error.Message + "\r\n");
+                        ShowMessageOnPanel("Request " + error.RequestId + ", Code: " + error.ErrorCode + " - " + error.Message + "\r\n");
                         HandleErrorMessage(error);
                         break;
                     }
@@ -90,7 +99,7 @@ namespace AmengSoft.IBTrader
                 case MessageType.MarketDepth:
                 case MessageType.MarketDepthL2:
                     {
-                        deepBookManager.UpdateUI(message);
+                        //deepBookManager.UpdateUI(message);
                         break;
                     }
                 case MessageType.HistoricalData:
@@ -101,12 +110,12 @@ namespace AmengSoft.IBTrader
                     }
                 case MessageType.RealTimeBars:
                     {
-                        realTimeBarManager.UpdateUI(message);
+                        //realTimeBarManager.UpdateUI(message);
                         break;
                     }
                 case MessageType.ScannerData:
                     {
-                        scannerManager.UpdateUI(message);
+                        //scannerManager.UpdateUI(message);
                         break;
                     }
                 case MessageType.OpenOrder:
@@ -115,20 +124,20 @@ namespace AmengSoft.IBTrader
                 case MessageType.ExecutionData:
                 case MessageType.CommissionsReport:
                     {
-                        orderManager.UpdateUI(message);
+                        //orderManager.UpdateUI(message);
                         break;
                     }
                 case MessageType.ManagedAccounts:
                     {
-                        orderManager.ManagedAccounts = ((ManagedAccountsMessage)message).ManagedAccounts;
-                        accountManager.ManagedAccounts = ((ManagedAccountsMessage)message).ManagedAccounts;
+                        //orderManager.ManagedAccounts = ((ManagedAccountsMessage)message).ManagedAccounts;
+                        //accountManager.ManagedAccounts = ((ManagedAccountsMessage)message).ManagedAccounts;
                         //exerciseAccount.Items.AddRange(((ManagedAccountsMessage)message).ManagedAccounts.ToArray());
                         break;
                     }
                 case MessageType.AccountSummaryEnd:
                     {
                         //accSummaryRequest.Text = "Request";
-                        accountManager.UpdateUI(message);
+                        //accountManager.UpdateUI(message);
                         break;
                     }
                 case MessageType.AccountDownloadEnd:
@@ -142,7 +151,7 @@ namespace AmengSoft.IBTrader
                     }
                 case MessageType.PortfolioValue:
                     {
-                        accountManager.UpdateUI(message);
+                        //accountManager.UpdateUI(message);
                         //if (exerciseAccount.SelectedItem != null)
                         //    optionsManager.HandlePosition((UpdatePortfolioMessage)message);
                         break;
@@ -152,13 +161,13 @@ namespace AmengSoft.IBTrader
                 case MessageType.Position:
                 case MessageType.PositionEnd:
                     {
-                        accountManager.UpdateUI(message);
+                        //accountManager.UpdateUI(message);
                         break;
                     }
                 case MessageType.ContractDataEnd:
                     {
                         //searchContractDetails.Enabled = true;
-                        contractManager.UpdateUI(message);
+                        //contractManager.UpdateUI(message);
                         break;
                     }
                 case MessageType.ContractData:
@@ -169,12 +178,12 @@ namespace AmengSoft.IBTrader
                 case MessageType.FundamentalData:
                     {
                         //fundamentalsQueryButton.Enabled = true;
-                        contractManager.UpdateUI(message);
+                        //contractManager.UpdateUI(message);
                         break;
                     }
                 case MessageType.ReceiveFA:
                     {
-                        advisorManager.UpdateUI((AdvisorDataMessage)message);
+                        //advisorManager.UpdateUI((AdvisorDataMessage)message);
                         break;
                     }
                 default:
@@ -189,7 +198,7 @@ namespace AmengSoft.IBTrader
         {
             if (tickMessage.RequestId < OptionsManager.OPTIONS_ID_BASE)
             {
-                marketDataManager.UpdateUI(tickMessage);
+                //marketDataManager.UpdateUI(tickMessage);
             }
             else
             {
@@ -197,7 +206,7 @@ namespace AmengSoft.IBTrader
                 {
                 //    queryOptionChain.Enabled = true;
                 }
-                optionsManager.UpdateUI(tickMessage);
+                //optionsManager.UpdateUI(tickMessage);
             }
 
         }
@@ -206,33 +215,37 @@ namespace AmengSoft.IBTrader
         {
             if (message.RequestId > ContractManager.CONTRACT_ID_BASE && message.RequestId < OptionsManager.OPTIONS_ID_BASE)
             {
-                contractManager.UpdateUI(message);
+                //contractManager.UpdateUI(message);
             }
             else if (message.RequestId >= OptionsManager.OPTIONS_ID_BASE)
             {
-                optionsManager.UpdateUI(message);
+                //optionsManager.UpdateUI(message);
             }
         }
 
         private void HandleErrorMessage(ErrorMessage message)
         {
             if (message.RequestId > MarketDataManager.TICK_ID_BASE && message.RequestId < DeepBookManager.TICK_ID_BASE)
-                marketDataManager.NotifyError(message.RequestId);
+            {
+                //marketDataManager.NotifyError(message.RequestId);
+            }
             else if (message.RequestId > DeepBookManager.TICK_ID_BASE && message.RequestId < HistoricalDataManager.HISTORICAL_ID_BASE)
-                deepBookManager.NotifyError(message.RequestId);
+            {
+                //deepBookManager.NotifyError(message.RequestId);
+            }
             else if (message.RequestId == ContractManager.CONTRACT_DETAILS_ID)
             {
-                contractManager.HandleRequestError(message.RequestId);
+                //contractManager.HandleRequestError(message.RequestId);
                 //searchContractDetails.Enabled = true;
             }
             else if (message.RequestId == ContractManager.FUNDAMENTALS_ID)
             {
-                contractManager.HandleRequestError(message.RequestId);
+                //contractManager.HandleRequestError(message.RequestId);
                 //fundamentalsQueryButton.Enabled = true;
             }
             else if (message.RequestId == OptionsManager.OPTIONS_ID_BASE)
             {
-                optionsManager.Clear();
+                //optionsManager.Clear();
                 //queryOptionChain.Enabled = true;
             }
             else if (message.RequestId > OptionsManager.OPTIONS_ID_BASE)
@@ -241,6 +254,84 @@ namespace AmengSoft.IBTrader
             }
             if (message.ErrorCode == 202)
             {
+            }
+        }
+
+        private void mnuFileConnect_Click(object sender, EventArgs e)
+        {
+            DoConnect();
+        }
+
+        private void DoConnect()
+        {
+            if (!IsConnected)
+            {
+                try
+                {
+                    int port = 7496;
+                    string host = "localhost";
+
+                    ibClient.ClientId = 88666;
+                    ibClient.ClientSocket.eConnect(host, port, ibClient.ClientId);
+                }
+                catch (Exception)
+                {
+                    HandleMessage(new ErrorMessage(-1, -1, "Please check your connection attributes."));
+                }
+            }
+            else
+            {
+                ibClient.ClientSocket.eDisconnect();
+            }
+        }
+
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            if (IsConnected)
+            {
+                ibClient.ClientSocket.eDisconnect();
+            }
+        }
+
+        private void ShowMessageOnPanel(string message)
+        {
+            this.messageBox.Text += (message);
+            messageBox.Select(messageBox.Text.Length, 0);
+            messageBox.ScrollToCaret();
+        }
+
+        private void mnuShowHistoryData_Click(object sender, EventArgs e)
+        {
+            if (isConnected)
+            {
+                Contract contract = new Contract
+                {
+                    SecType = "CASH",
+                    Symbol = "EUR",
+                    Exchange = "IDEALPRO",
+                    Currency = "USD",
+                    Expiry = "",
+                    PrimaryExch = "",
+                    IncludeExpired = false,
+                    Right = null,
+                    Strike = 0,
+                    Multiplier = "",
+                    LocalSymbol = ""
+                };
+                string endTime = "20130808 23:59:59 GMT";
+                string duration = "30 D";
+                // 1 secs, 5 secs, 10 secs, 15 secs, 30 secs, 
+                // 1 min, 2 mins, 3 mins, 5 mins, 10 mins, 15 mins, 
+                // 20 mins, 30 mins, 1 hour, 2 hours, 3 hours, 4 hours, 8 hours, 1 day, 1W, 1M
+                string barSize = "1 hour";
+                string whatToShow = "MIDPOINT";
+                int outsideRTH = 0;
+                historicalDataManager.AddRequest(contract, endTime, duration, barSize, whatToShow, outsideRTH, 1);
             }
         }
     }
